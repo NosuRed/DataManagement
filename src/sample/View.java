@@ -1,13 +1,9 @@
 package sample;
 
-import com.sun.javafx.tk.Toolkit;
+
 import javafx.application.Application;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Task;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.CheckBoxListCell;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
@@ -15,8 +11,10 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 import java.security.Key;
+import java.util.ResourceBundle;
 
 
 public class View extends Application {
@@ -25,6 +23,7 @@ public class View extends Application {
 
     private final TableView<Document> documentsTable = new TableView<>();
     private final TableView<Keyword> keywordTable = new TableView<>();
+    private TableColumn<Keyword, Boolean> column;
     @Override
     public void start(Stage primaryStage) throws Exception{
 
@@ -32,7 +31,7 @@ public class View extends Application {
         VBox root = new VBox();
         final String fileName = "bookDatabase.db";
         controller.setFilename(fileName);
-
+        controller.startQuery();
         //ObservableList<Document> data = FXCollections.observableArrayList(controller.getDocumentsDataObList());
 
         TableColumn<Document, Integer> idColumn = new TableColumn<>("ID");
@@ -47,6 +46,21 @@ public class View extends Application {
         authorName.setCellValueFactory(new PropertyValueFactory<>("author"));
         authorName.setMinWidth(110.0);
 
+        documentsTable.setItems(controller.getDocumentsDataObList());
+        documentsTable.getColumns().addAll(idColumn, bookTitle, authorName);
+
+        TableColumn<Keyword, String> keywordName = new TableColumn<>("Keyword");
+        keywordName.setCellValueFactory(new PropertyValueFactory<>("keyword"));
+        keywordName.setMinWidth(110.0);
+
+
+        TableColumn<Keyword, String> checkBoxName = new TableColumn<>("Select");
+        checkBoxName.setCellValueFactory(new PropertyValueFactory<>("checkBox"));
+
+        keywordTable.setItems(controller.getKeywordsObList());
+        keywordTable.getColumns().addAll(checkBoxName,keywordName);
+
+        // creating the Hbox for the add and delete buttons
         HBox addAndDeleteHbox = new HBox();
         Button addBtn = new Button("+");
         addBtn.setDisable(true);
@@ -85,9 +99,9 @@ public class View extends Application {
         authorFieldHbox.setSpacing(15);
 
 
+        //
 
-        documentsTable.setItems(controller.getDocumentsDataObList());
-        documentsTable.getColumns().addAll(idColumn, bookTitle, authorName);
+
 
 
         Button openKeywordsWindowBtn = new Button("Keywords");
@@ -103,27 +117,50 @@ public class View extends Application {
         primaryStage.show();
 
 
+
+
+
+
+
         openKeywordsWindowBtn.setOnAction(c -> {
             VBox keyWordsVbox = new VBox();
-
-            TableColumn<Keyword, String> keywordName = new TableColumn<>("Keyword");
-            keywordName.setCellValueFactory(new PropertyValueFactory<>("keyword"));
-            keywordName.setMinWidth(110.0);
-            keywordTable.setItems(controller.getKeywordsObList());
-
-            keywordTable.getColumns().addAll(keywordName);
-            keyWordsVbox.getChildren().addAll(keywordTable);
-
-            controller.startQuery();
+            Label keywordLaben = new Label("Keyword: ");
+            TextField keywordTextField = new TextField();
+            Button addKeywordBtn = new Button("+");
+            Button deleteKeywordBtn = new Button("-");
+            keyWordsVbox.getChildren().addAll(keywordTable, deleteKeywordBtn, keywordLaben, keywordTextField, addKeywordBtn);
             try{
                Stage keywordStage = new Stage();
                keywordStage.setTitle("Keywords");
                keywordStage.setScene(new Scene(keyWordsVbox,200,200));
                keywordStage.show();
+
+
+               addKeywordBtn.setOnAction(add ->{
+
+                   String value = keywordTextField.getText();
+                   controller.addKeyword(new Keyword(value));
+                   controller.startQuery();
+               });
+
+               deleteKeywordBtn.setOnAction(event ->{
+                   Keyword keyword = keywordTable.getSelectionModel().getSelectedItem();
+                   if(null == keyword){
+                       System.out.println("No keyword has been selected!");
+                   }else{
+                       controller.deleteKeyword(keyword.getKeyword());
+                       controller.startQuery();
+                   }
+               });
+
+
+
+
             }catch (Exception e){
                 System.out.println(e + "this error is bad mmkay");
             }
         });
+
 
         idTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             updateAddBtn(idTextField, titleTextField, authorTextField, addBtn);
@@ -151,7 +188,6 @@ public class View extends Application {
         });
 
         deleteBtn.setOnAction(c ->{
-
             Document document = documentsTable.getSelectionModel().getSelectedItem();
             if (document == null){
                 System.out.println("No document Selected! ");
@@ -160,18 +196,11 @@ public class View extends Application {
             controller.deleteDocument(document.getID());
             controller.startQuery();
             }
-
-
-
         });
-
-
-
-
     }
 
 
-    public void updateAddBtn(TextField id, TextField titel, TextField author, Button add){
+    private void updateAddBtn(TextField id, TextField titel, TextField author, Button add){
         if (!id.getText().isEmpty() && !titel.getText().isEmpty() && !author.getText().isEmpty()) {
             add.setDisable(false);
         }else{

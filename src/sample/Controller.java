@@ -1,9 +1,11 @@
 package sample;
 
 import javafx.collections.ObservableList;
+import javafx.scene.control.CheckBox;
+
 
 public class Controller {
-    BookData documentData = new BookData();
+    DocumentData documentData = new DocumentData();
 
     public void setFilename(String filename){
         documentData.setFilename(filename);
@@ -28,5 +30,15 @@ public class Controller {
     public  ObservableList<Keyword> getKeywordsObList(){
      return documentData.getKeywordObservableList();
     }
+
+    public void deleteKeyword(String keyword){
+        documentData.deleteKeyWord(keyword);
+    }
+
+    public Keyword addKeyword(Keyword keyword){
+        return documentData.addKeyword(keyword);
+    }
+
+
 
 }
