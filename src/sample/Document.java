@@ -3,6 +3,8 @@ package sample;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
+import java.util.ArrayList;
+
 public class Document {
 
     private SimpleIntegerProperty documentID;

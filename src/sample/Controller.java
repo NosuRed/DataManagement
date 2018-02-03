@@ -1,7 +1,8 @@
 package sample;
 
 import javafx.collections.ObservableList;
-import javafx.scene.control.CheckBox;
+
+import java.util.ArrayList;
 
 
 public class Controller {
@@ -15,8 +16,9 @@ public class Controller {
         return documentData.getDocumentObservableList();
     }
 
-    public Document getaddDocument(Document document){
-        return documentData.addDocument(document);
+    public void getaddDocument(Document document){
+        documentData.addDocument(document);
+
     }
 
     public void startQuery(){
@@ -35,10 +37,22 @@ public class Controller {
         documentData.deleteKeyWord(keyword);
     }
 
-    public Keyword addKeyword(Keyword keyword){
-        return documentData.addKeyword(keyword);
+    public void addKeyword(Keyword keyword){
+        documentData.addKeyword(keyword);
+    }
+
+    public void connectKeywordToDocument(int id, String keyword){
+        documentData.addKeywordsToDocument(id, keyword);
+    }
+
+    public void deletedConnectedKeywordFromDocument(int id){
+        documentData.deleteKeywordsFromDeletedDocument(id);
+
     }
 
 
 
+    public ArrayList<String> connectionToDocumentQuery(int id){
+        return documentData.connectionToDocumentQuery(id);
+    }
 }
