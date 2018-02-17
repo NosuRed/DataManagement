@@ -12,7 +12,13 @@ public class Document {
     private SimpleStringProperty documentAuthor;
 
 
-
+    /**
+     * Creates a Document for an Observable list
+     * The incoming attributes are declared as Simple Properties for the Observable list
+     * @param id is the identification for the document that will be displayed
+     * @param documentTitle is the title of the document that will be displayed
+     * @param documentAuthor is the name of the author that will be displayed
+     */
     Document(int id, String documentTitle, String documentAuthor){
         this.documentID = new SimpleIntegerProperty(id);
         this.documentTitle = new SimpleStringProperty(documentTitle);

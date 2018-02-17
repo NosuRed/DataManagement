@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 
 public class Controller {
-    DocumentData documentData = new DocumentData();
+    private DocumentData documentData = new DocumentData();
 
     public void setFilename(String filename){
         documentData.setFilename(filename);
@@ -50,9 +50,13 @@ public class Controller {
 
     }
 
-
-
-    public ArrayList<String> connectionToDocumentQuery(int id){
-        return documentData.connectionToDocumentQuery(id);
+    public void deleteSingleKeyword(int keyword, String id){
+        documentData.deleteSingleKeyword(keyword, id);
     }
+
+
+    public String getNametest(){
+        return documentData.getNametest();
+    }
+
 }

@@ -13,14 +13,16 @@ public class DocumentData {
 
 
 
+
     private String jdbc = "jdbc:sqlite";
-    private String filename = null;
-    private String url;
+    private String filename = "bookDatabase.db";
+    private String url = jdbc + ":" +filename;
 
 
     public void setFilename(String filename) {
         this.filename = filename;
         documentTableQuery();
+
 
 
     }
@@ -29,9 +31,17 @@ public class DocumentData {
         String driver = "org.sqlite.JDBC";
         try{
             Class.forName(driver);
+            createDocumentTable();
+            createKeywordsTable();
+            createKeywordToDocumentsTable();
         }catch (ClassNotFoundException e){
             e.printStackTrace();
         }
+    }
+    public void startQuery(){
+        documentTableQuery();
+        keywordsTableQuery();
+        showKeywordsReferenceQuery();
     }
 
     //Returns an Observable list for the keywords
@@ -87,7 +97,8 @@ public class DocumentData {
     public void addKeyword(Keyword keyword){
         System.out.println(keyword.getKeyword());
         try(Connection connection = DriverManager.getConnection(url)){
-            try (PreparedStatement insertIntoStatement = connection.prepareStatement("INSERT INTO Keywords(Name) VALUES (?)")){
+            try (PreparedStatement insertIntoStatement = connection.prepareStatement(
+                    "INSERT INTO Keywords(Name) VALUES (?)")){
                 insertIntoStatement.setString(1, keyword.getKeyword());
                 insertIntoStatement.execute();
 
@@ -111,8 +122,6 @@ public class DocumentData {
                 insertIntostatement.setString(2, document.getTitle());
                 insertIntostatement.setString(3, document.getAuthor());
                 insertIntostatement.execute();
-
-
                 }
 
         }catch (SQLException e){
@@ -124,10 +133,7 @@ public class DocumentData {
     /**
      * initiates the select queries
      */
-    public void startQuery(){
-        documentTableQuery();
-        keywordsTableQuery();
-    }
+
 
     /**
      *
@@ -136,7 +142,7 @@ public class DocumentData {
         synchronized (this.keywordObservableList) {
             this.keywordObservableList.clear();
             this.url = jdbc + ":" + filename;
-            String sqlQuery = "SELECT NAME FROM Keywords";
+            String sqlQuery = "SELECT Name, ID FROM Keywords";
             try {
                 PreparedStatement preparedStatement;
                 try (Connection connection = DriverManager.getConnection(url)) {
@@ -144,6 +150,7 @@ public class DocumentData {
                     ResultSet cursor = preparedStatement.executeQuery();
                     while (cursor.next()) {
                         String name = cursor.getString(1);
+                        int id = cursor.getInt(2);
                         Keyword keywords = new Keyword(name);
                         keywordObservableList.addAll(keywords);
                     }
@@ -174,7 +181,6 @@ public class DocumentData {
                         int id = cursor.getInt(1);
                         String title = cursor.getString(2);
                         String author = cursor.getString(3);
-                        //System.out.println(id + " " + title + " " + author );
                         Document documents = new Document(id, title, author);
                         documentObservableList.addAll(documents);
 
@@ -188,22 +194,45 @@ public class DocumentData {
         }
     }
 
-    public void addKeywordsToDocument(int id, String keywordName){
+    public void addKeywordsToDocument(int id, String keywordID){
         try ( Connection connection = DriverManager.getConnection(url)){
             try(PreparedStatement insertIntostatement = connection.prepareStatement(
                     "INSERT INTO ActiveKeywords(ID, Keyword) VALUES (?, ?)")) {
                 insertIntostatement.setInt(1, id);
-                insertIntostatement.setString(2, keywordName);
+                insertIntostatement.setString(2, keywordID);
                 insertIntostatement.execute();
-
+                //System.out.println("Add keyword to document " +  keywordID);
             }
-
         }catch (SQLException e){
             e.printStackTrace();
         }
 
     }
 
+    /**
+     * deletes a single keyword that has been connected to a document
+     * @param id is the keyword that will be deleted
+     * @param keyword is the id connected to the keyword
+     *  the keyword and the id together are used to make sure that only the right keyword is deleted
+     */
+    public void deleteSingleKeyword(int id, String keyword){
+        try(Connection connection = DriverManager.getConnection(url)) {
+            try (PreparedStatement deleteStatement = connection.prepareStatement(
+                    "DELETE FROM ActiveKeywords WHERE ID == ? and Keyword  ==  ?;"
+            )){
+               deleteStatement.setInt(1, id);
+               deleteStatement.setString(2, keyword);
+                System.out.println(id);
+                System.out.println(keyword);
+                deleteStatement.execute();
+            }catch (SQLException e){
+                System.out.println("Delete Single Keyword Error" +  e);
+            }
+
+        }catch (SQLException p ){
+            System.out.println("Delete Single Keyword Error " + p);
+        }
+    }
 
     //Deletes everything!
     public void deleteKeywordsFromDeletedDocument(int id){
@@ -213,8 +242,6 @@ public class DocumentData {
             )){
                 deleteStatement.setInt(1, id);
                 deleteStatement.execute();
-
-
             }catch (SQLException e){
                 System.out.println(e + "error in deleteKeyWord");
             }
@@ -223,39 +250,80 @@ public class DocumentData {
             System.out.println(c);
         }
 
+
+
     }
 
-    //TODO: More delete queries!
 
 
+    private void createDocumentTable(){
+        try (Connection connection = DriverManager.getConnection(url)){
+            String query =
+                    "CREATE TABLE IF NOT EXISTS Documents (ID INTEGER UNIQUE , title TEXT, author TEXT)";
+            Statement statement = connection.createStatement();
+            statement.execute(query);
+
+        }catch (SQLException z){
+            z.printStackTrace();
+        }
+    }
 
 
+    private void createKeywordsTable(){
+        try (Connection connection = DriverManager.getConnection(url)){
+            String query =
+                    "CREATE TABLE IF NOT EXISTS Keywords (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL )";
+            Statement statement = connection.createStatement();
+            statement.execute(query);
 
-    public ArrayList<String> connectionToDocumentQuery(int id){
-        ArrayList<String> keywordList = new ArrayList<>();
-            this.url = jdbc + ":" + filename;
-            String sqlQuery =
-                    "SELECT Keyword FROM ActiveKeywords WHERE ID ==" + id ;
-            try{
-                PreparedStatement preparedStatement;
-                try(Connection connection = DriverManager.getConnection(url)){
-                    preparedStatement = connection.prepareStatement(sqlQuery);
-                    ResultSet cursor = preparedStatement.executeQuery();
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
 
-                    while (cursor.next()){
-                        String keyword = cursor.getString(1);
-                        keywordList.add(keyword);
-                        }
+    private void createKeywordToDocumentsTable(){
+        try (Connection connection = DriverManager.getConnection(url)){
+            String query =
+                    "CREATE TABLE IF NOT EXISTS ActiveKeywords (ID INTEGER ," +
+                            " keyword TEXT)";
+            Statement statement = connection.createStatement();
+            statement.execute(query);
 
-                        return keywordList;
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    private String nametest;
+
+
+    public String getNametest() {
+        return nametest;
+    }
+
+    private void showKeywordsReferenceQuery(){
+        int id = 2;
+        this.url = jdbc + ":" + filename;
+        String sqlQuery = "SELECT ID, keyword FROM ActiveKeywords WHERE ID ==" + id;
+        try {
+            PreparedStatement preparedStatement;
+            try (Connection connection = DriverManager.getConnection(url)) {
+                preparedStatement = connection.prepareStatement(sqlQuery);
+                ResultSet cursor = preparedStatement.executeQuery();
+                while (cursor.next()) {
+                     this.nametest = cursor.getString(2);
+                    int id1 = cursor.getInt(1);
+                    System.out.println(nametest +" "+ id1 );
                 }
-            }catch (SQLException e){
-                e.printStackTrace();
-
-            } return keywordList;
+            }
+        } catch (SQLException e) {
+            System.out.println("NANIII " + e);
+        }
     }
-
 }
+
+
+
 
 
 

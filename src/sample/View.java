@@ -26,15 +26,12 @@ import java.util.ResourceBundle;
 
 public class View extends Application {
     private Controller controller = new Controller();
-    private static final String title = "Document management system";
+    private static final String title = "Document Management System";
 
     private final TableView<Document> documentsTable = new TableView<>();
     private final TableView<Keyword> keywordTable = new TableView<>();
-    private TableColumn<Keyword, Boolean> column;
-    private String keywordValue;
     @Override
     public void start(Stage primaryStage) throws Exception{
-
 
         VBox root = new VBox();
         final String fileName = "bookDatabase.db";
@@ -70,12 +67,12 @@ public class View extends Application {
 
         // creating the Hbox for the add and delete buttons
         HBox addAndDeleteHbox = new HBox();
-        Button addBtn = new Button("+");
-        addBtn.setDisable(true);
-        Button deleteBtn = new Button("-");
+        Button addDocumentBtn = new Button("+");
+        addDocumentBtn.setDisable(true);
+        Button deleteDocumentBtn = new Button("-");
 
-        addBtn.setMinSize(30.0, 30.0);
-        deleteBtn.setMinSize(30.0, 30.0);
+        addDocumentBtn.setMinSize(30.0, 30.0);
+        deleteDocumentBtn.setMinSize(30.0, 30.0);
 
         Pane leftSpacePane = new Pane();
         Pane rightSpacePane = new Pane();
@@ -84,7 +81,7 @@ public class View extends Application {
         HBox.setHgrow(leftSpacePane, Priority.ALWAYS);
         HBox.setHgrow(rightSpacePane, Priority.ALWAYS);
         addAndDeleteHbox.setSpacing(5.0);
-        addAndDeleteHbox.getChildren().addAll(leftSpacePane, addBtn, deleteBtn, rightSpacePane);
+        addAndDeleteHbox.getChildren().addAll(leftSpacePane, addDocumentBtn, deleteDocumentBtn, rightSpacePane);
 
         // creating the TextFields for the user inputs
         HBox idFields = new HBox();
@@ -117,9 +114,6 @@ public class View extends Application {
         keywordsHbox.setSpacing(10.1);
 
 
-
-
-
         // new PropertyValueFactory<>("ID") => getID
         // new PropertyValueFactory<>("BookID") => getBookID
 
@@ -140,12 +134,16 @@ public class View extends Application {
             Button deleteConnectionToDocumentBtn = new Button("Delete");
             Button addKeywordsAndDocumentsBtn = new Button("Add");
             keyWordsVbox.getChildren().addAll(keywordTable, addKeywordsAndDocumentsBtn, deleteConnectionToDocumentBtn,keywordLaben, keywordTextField, addKeywordBtn, deleteKeywordBtn);
+            //Dialog dialog = new Dialog();
+            //dialog.getDialogPane().setContent(keyWordsVbox);
 
             try{
+
                Stage keywordStage = new Stage();
                keywordStage.setTitle("Keywords");
                keywordStage.setScene(new Scene(keyWordsVbox,200,200));
                keywordStage.show();
+                //dialog.show();
 
                addKeywordBtn.setOnAction(add ->{
                    try {
@@ -169,6 +167,7 @@ public class View extends Application {
                        if (null == keyword) {
                            System.out.println("No keyword has been selected!");
                        } else {
+                           System.out.println("Keyword has been deleted");
                            controller.deleteKeyword(keyword.getKeyword());
                            controller.startQuery();
                        }
@@ -181,6 +180,7 @@ public class View extends Application {
                     try {
                         int documentID = documentsTable.getSelectionModel().getSelectedItem().getID();
                         String keyword = keywordTable.getSelectionModel().getSelectedItem().getKeyword();
+                        //System.out.println(test);
                         controller.connectKeywordToDocument(documentID, keyword);
                         controller.startQuery();
                     }catch (NullPointerException a){
@@ -189,50 +189,48 @@ public class View extends Application {
 
                 });
 
+
+                // Deletes a keyword from a document
                 deleteConnectionToDocumentBtn.setOnAction(k ->{
                     try {
-                        int documentID = documentsTable.getSelectionModel().getSelectedItem().getID();
-                        controller.deletedConnectedKeywordFromDocument(documentID);
+                        int id = documentsTable.getSelectionModel().getSelectedItem().getID();
+                        String keyword = keywordTable.getSelectionModel().getSelectedItem().getKeyword();
+                        controller.deleteSingleKeyword(id, keyword);
+
+                        System.out.println("Keyword connected to the document has been deleted");
                     }catch (NullPointerException e){
-                        System.out.println(" haha");
+                        System.out.println(" delete connection to Document " + e);
                     }
                 });
-
 
             }catch (Exception e){
                 System.out.println(e + "this error is bad mmkay");
             }
         });
 
-        //FIXME: I will not deal with this, my future self can deal with it. Good luck!
-      /* documentsTable.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Document> observable, Document oldValue, Document newValue) -> {
-           System.out.println(newValue.getID());
-            ArrayList<String> test = controller.connectionToDocumentQuery(newValue.getID());
-            keywordValue = "";
-            for (int i = 0; i < test.size(); i++){
-                keywordValue += test.get(i) + "\n";
-            System.out.println(test.get(i));
-            }
-            keywordsTextArea.setText(keywordValue);
-        });*/
+
 
 
 
         idTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            updateAddBtn(idTextField, titleTextField, authorTextField, addBtn);
+            updateAddBtn(idTextField, titleTextField, authorTextField, addDocumentBtn);
         });
 
 
         titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            updateAddBtn(idTextField, titleTextField, authorTextField, addBtn);
+            updateAddBtn(idTextField, titleTextField, authorTextField, addDocumentBtn);
         });
 
         authorTextField.textProperty().addListener((observable, oldValue, newValue) -> {
-            updateAddBtn(idTextField, titleTextField, authorTextField, addBtn);
+            updateAddBtn(idTextField, titleTextField, authorTextField, addDocumentBtn);
         });
 
 
-        addBtn.setOnAction(c ->{
+        /**
+         * Adds a document to the document table
+         * starts the query to update
+         */
+        addDocumentBtn.setOnAction(c ->{
             Integer intValue;
             try {
                 intValue = Integer.parseInt(idTextField.getText());
@@ -243,14 +241,24 @@ public class View extends Application {
             }
         });
 
-        deleteBtn.setOnAction(c ->{
+        /**
+         * Deletes the document together with every the connected keywords that are connected to it in the tables
+         * will only delete the connection between the document and the keywords
+         * the keywords are still available in the keyword table window
+         * calls the method to delete a selected document
+         * calls the method to delete the keywords associated with the document id
+         * starts the query to update
+         */
+        deleteDocumentBtn.setOnAction(c ->{
             try {
                 Document document = documentsTable.getSelectionModel().getSelectedItem();
                 if (document == null) {
                     System.out.println("No document Selected! ");
                 } else {
-                    System.out.println(document.getID());
+                    controller.deletedConnectedKeywordFromDocument(document.getID());
                     controller.deleteDocument(document.getID());
+
+
                     controller.startQuery();
                 }
             }catch (NullPointerException b){
@@ -260,6 +268,14 @@ public class View extends Application {
     }
 
 
+    /**
+     * Method to change the add button for the documents
+     * if every field is filled the "add button" will be usable
+     * @param id takes the input of the text field for the id
+     * @param title takes the input of the text field for the titel
+     * @param author takes the input of the text field for the author
+     * @param add gets the add button
+     */
     private void updateAddBtn(TextField id, TextField title, TextField author, Button add){
         if (!id.getText().isEmpty() && !title.getText().isEmpty() && !author.getText().isEmpty()) {
             add.setDisable(false);
