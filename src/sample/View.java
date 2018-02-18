@@ -126,13 +126,13 @@ public class View extends Application {
             addKeywordToDocumentsBtn.setDisable(true);
             deleteConnectionToDocumentBtn.setDisable(true);
             try{
-
                 // Creating a new stage for the Keyword window
                Stage keywordStage = new Stage();
                keywordStage.setTitle("Keywords");
                keywordStage.setScene(new Scene(keyWordsVBox,200,200));
+               keywordStage.setMinWidth(300);
+               keywordStage.setMinHeight(300);
                keywordStage.show();
-
 
                //When the main window is closed, the keyword window will also be closed
                primaryStage.setOnCloseRequest(closeEvent -> {
@@ -153,7 +153,7 @@ public class View extends Application {
 
 
                 // When a keyword is put into the text field, it will be added to the table view and displayed, queries are are called to update
-               addKeywordBtn.setOnAction(add ->{
+                addKeywordBtn.setOnAction(add ->{
                    try {
                        // Getting the keyword from the text field
                        String value = keywordTextField.getText();
@@ -169,8 +169,8 @@ public class View extends Application {
                    }
                });
 
-               // When a keyword is selected and this button is pressed, the selected keyword will be deleted
-               deleteKeywordBtn.setOnAction(event ->{
+                 // When a keyword is selected and this button is pressed, the selected keyword will be deleted
+                deleteKeywordBtn.setOnAction(event ->{
                    try {
                        Keyword keyword = keywordTable.getSelectionModel().getSelectedItem();
                        if (null == keyword) {
