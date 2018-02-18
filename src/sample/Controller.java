@@ -31,7 +31,7 @@ public class Controller {
      return documentData.getKeywordObservableList();
     }
 
-    public void deleteKeyword(String keyword){
+    public void deleteKeyword(int keyword){
         documentData.deleteKeyWord(keyword);
     }
 
@@ -52,6 +52,9 @@ public class Controller {
         documentData.deleteSingleKeyword(keyword, id);
     }
 
+    public void deleteKeywordFromActiveKeywordQuery(int keyword){
+        documentData.deleteKeywordsFromActiveKeywordTable(keyword);
+    }
 
     public void startKeywordIDQuery(int id){
         documentData.startKeywordReferenceQuery(id);

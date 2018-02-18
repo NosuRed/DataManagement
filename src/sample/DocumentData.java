@@ -115,12 +115,12 @@ public class DocumentData {
      * SQL query to delete a keyword from the keywords table
      * @param keyword is the keyword that will be deleted from the Keywords table
      */
-    public void deleteKeyWord(String keyword){
+    public void deleteKeyWord(int keyword){
         try (Connection connection = DriverManager.getConnection(url)){
             try (PreparedStatement deleteStatement = connection.prepareStatement(
-                    "DELETE FROM Keywords WHERE Keyword == ?;"
+                    "DELETE FROM Keywords WHERE ID == ?;"
             )){
-                deleteStatement.setString(1, keyword);
+                deleteStatement.setInt(1,keyword);
                  deleteStatement.executeUpdate();
             }catch (SQLException e){
                 System.out.println(e + "error in deleteKeyWord");
@@ -129,6 +129,25 @@ public class DocumentData {
             System.out.println(c);
         }
     }
+
+
+    public void deleteKeywordsFromActiveKeywordTable(int keyword){
+        try (Connection connection = DriverManager.getConnection(url)){
+            try (PreparedStatement deleteStatement = connection.prepareStatement(
+                    "DELETE FROM ActiveKeywords WHERE keyword == ?;"
+            )){
+                deleteStatement.setInt(1,keyword);
+                deleteStatement.executeUpdate();
+            }catch (SQLException e){
+                System.out.println(e + "error in deleteKeyWord");
+                System.out.println();
+            }
+        }catch (SQLException c){
+            System.out.println(c);
+        }
+    }
+
+
 
     /**
      * SQL query to add a keyword to the keywords table

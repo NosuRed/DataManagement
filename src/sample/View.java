@@ -196,7 +196,8 @@ public class View extends Application {
                            System.out.println("No keyword has been selected!");
                        } else {
                            System.out.println("Keyword has been deleted");
-                           controller.deleteKeyword(keyword.getKeyword());
+                           controller.deleteKeyword(keyword.getKeywordID());
+                           controller.deleteKeywordFromActiveKeywordQuery(keyword.getKeywordID());
                            controller.startQuery();
                        }
                    }catch (NullPointerException x){
