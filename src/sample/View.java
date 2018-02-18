@@ -2,26 +2,18 @@ package sample;
 
 
 import javafx.application.Application;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
+import javafx.beans.Observable;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 
-import java.security.Key;
 import java.util.ArrayList;
-import java.util.EventListener;
-import java.util.ResourceBundle;
+import java.util.List;
 
 
 public class View extends Application {
@@ -30,6 +22,7 @@ public class View extends Application {
 
     private final TableView<Document> documentsTable = new TableView<>();
     private final TableView<Keyword> keywordTable = new TableView<>();
+    private String keywordList;
     @Override
     public void start(Stage primaryStage) throws Exception{
 
@@ -58,11 +51,11 @@ public class View extends Application {
         keywordName.setMinWidth(110.0);
 
 
-        TableColumn<Keyword, String> checkBoxName = new TableColumn<>("Select");
-        checkBoxName.setCellValueFactory(new PropertyValueFactory<>("checkBox"));
+        //TableColumn<Keyword, String> checkBoxName = new TableColumn<>("Select");
+        //checkBoxName.setCellValueFactory(new PropertyValueFactory<>("checkBox"));
 
         keywordTable.setItems(controller.getKeywordsObList());
-        keywordTable.getColumns().addAll(checkBoxName,keywordName);
+        keywordTable.getColumns().add(keywordName);
         keywordTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         // creating the Hbox for the add and delete buttons
@@ -123,32 +116,52 @@ public class View extends Application {
         primaryStage.show();
 
 
-
-
+        //When the button is pressed, a new window with a new interface is created
         openKeywordsWindowBtn.setOnAction(c -> {
-            VBox keyWordsVbox = new VBox();
-            Label keywordLaben = new Label("Keyword: ");
+            VBox keyWordsVBox = new VBox();
+            Label keywordLabel = new Label("Keyword: ");
             TextField keywordTextField = new TextField();
             Button addKeywordBtn = new Button("+");
             Button deleteKeywordBtn = new Button("-");
             Button deleteConnectionToDocumentBtn = new Button("Delete");
-            Button addKeywordsAndDocumentsBtn = new Button("Add");
-            keyWordsVbox.getChildren().addAll(keywordTable, addKeywordsAndDocumentsBtn, deleteConnectionToDocumentBtn,keywordLaben, keywordTextField, addKeywordBtn, deleteKeywordBtn);
-            //Dialog dialog = new Dialog();
-            //dialog.getDialogPane().setContent(keyWordsVbox);
-
+            Button addKeywordToDocumentsBtn = new Button("Add");
+            keyWordsVBox.getChildren().addAll(keywordTable, addKeywordToDocumentsBtn, deleteConnectionToDocumentBtn,keywordLabel, keywordTextField, addKeywordBtn, deleteKeywordBtn);
+            addKeywordToDocumentsBtn.setDisable(true);
+            deleteConnectionToDocumentBtn.setDisable(true);
             try{
 
+                // Creating a new stage for the Keyword window
                Stage keywordStage = new Stage();
                keywordStage.setTitle("Keywords");
-               keywordStage.setScene(new Scene(keyWordsVbox,200,200));
+               keywordStage.setScene(new Scene(keyWordsVBox,200,200));
                keywordStage.show();
-                //dialog.show();
 
+
+               //When the main window is closed, the keyword window will also be closed
+               primaryStage.setOnCloseRequest(closeEvent -> {
+                    keywordStage.close();
+                });
+
+                keywordStage.setOnCloseRequest(keywordStageCloseEvent -> {
+                    keywordTable.getSelectionModel().clearSelection();
+                });
+
+                keywordTable.getSelectionModel().selectedItemProperty().addListener(observable -> {
+                  updateKeywordAddDeleteBtn(keywordTable, documentsTable, addKeywordToDocumentsBtn, deleteConnectionToDocumentBtn);
+                });
+
+                documentsTable.getSelectionModel().selectedItemProperty().addListener(observable -> {
+                    updateKeywordAddDeleteBtn(keywordTable, documentsTable, addKeywordToDocumentsBtn, deleteConnectionToDocumentBtn);
+                });
+
+
+                // When a keyword is put into the text field, it will be added to the table view and displayed
                addKeywordBtn.setOnAction(add ->{
                    try {
 
+                        // Getting the keyword from the text field
                        String value = keywordTextField.getText();
+                       //If the text field is not empty, the keyword can be added
                        if (!value.isEmpty()) {
                            controller.addKeyword(new Keyword(value));
                            controller.startQuery();
@@ -160,9 +173,9 @@ public class View extends Application {
                    }
                });
 
+               // When a keyword is selected and this button is pressed, the selected keyword will be deleted
                deleteKeywordBtn.setOnAction(event ->{
                    try {
-
                        Keyword keyword = keywordTable.getSelectionModel().getSelectedItem();
                        if (null == keyword) {
                            System.out.println("No keyword has been selected!");
@@ -176,15 +189,19 @@ public class View extends Application {
                    }
                });
 
-                addKeywordsAndDocumentsBtn.setOnAction( d ->{
+
+                /**
+                 * When the add button is clicked, a keyword will be connected to a document
+                 * The document id and the keywordID are saved in the ActiveKeywords table
+                 */
+                addKeywordToDocumentsBtn.setOnAction( d ->{
                     try {
                         int documentID = documentsTable.getSelectionModel().getSelectedItem().getID();
-                        String keyword = keywordTable.getSelectionModel().getSelectedItem().getKeyword();
-                        //System.out.println(test);
+                        int keyword = keywordTable.getSelectionModel().getSelectedItem().getKeywordID();
                         controller.connectKeywordToDocument(documentID, keyword);
                         controller.startQuery();
                     }catch (NullPointerException a){
-                        System.out.println(a + "Please select somethingmymymy");
+                        System.out.println(a + "Please select something");
                     }
 
                 });
@@ -194,7 +211,7 @@ public class View extends Application {
                 deleteConnectionToDocumentBtn.setOnAction(k ->{
                     try {
                         int id = documentsTable.getSelectionModel().getSelectedItem().getID();
-                        String keyword = keywordTable.getSelectionModel().getSelectedItem().getKeyword();
+                        int keyword = keywordTable.getSelectionModel().getSelectedItem().getKeywordID();
                         controller.deleteSingleKeyword(id, keyword);
 
                         System.out.println("Keyword connected to the document has been deleted");
@@ -215,19 +232,15 @@ public class View extends Application {
         idTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             updateAddBtn(idTextField, titleTextField, authorTextField, addDocumentBtn);
         });
-
-
         titleTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             updateAddBtn(idTextField, titleTextField, authorTextField, addDocumentBtn);
         });
-
         authorTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             updateAddBtn(idTextField, titleTextField, authorTextField, addDocumentBtn);
         });
 
-
         /**
-         * Adds a document to the document table
+         * Adds a document to the Document table
          * starts the query to update
          */
         addDocumentBtn.setOnAction(c ->{
@@ -265,7 +278,36 @@ public class View extends Application {
                 System.out.println(b + "this is b");
             }
         });
+
+        // Adds the keyword to the text area designated for the keyword display
+        documentsTable.getSelectionModel().selectedItemProperty().addListener((Observable observable) -> {
+            keywordsTextArea.clear();
+            try {
+                controller.startKeywordIDQuery(documentsTable.getSelectionModel().getSelectedItem().getID());
+            }catch (NullPointerException e){
+                System.out.println(e + "This is caught, idk why this error happens, but every still works");
+            }
+
+
+            if (!documentsTable.getSelectionModel().isEmpty()){
+                List<Integer> keywordIDArray = controller.getKeywordIdArray();
+                for (int i = 0; i < keywordIDArray.size(); i++){
+                    System.out.println(keywordIDArray.get(i));
+                    controller.startKeywordDisplayQuery(keywordIDArray.get(i));
+                }controller.getKeywordIdArray().clear();
+                ArrayList<String> keywordArrayList = controller.getDisplayKeywordsArray();
+                for (int i = 0; i < keywordArrayList.size(); i++){
+                    keywordsTextArea.appendText(keywordArrayList.get(i) + " ");
+                }
+                keywordArrayList.clear();
+            }
+        });
+        controller.startQuery();
+
+
     }
+
+
 
 
     /**
@@ -281,6 +323,23 @@ public class View extends Application {
             add.setDisable(false);
         }else{
             add.setDisable(true);
+        }
+    }
+
+    /**
+     * This method updates the buttons for connecting a keyword to a document and for deleting a document
+     * @param keywordTable is the tableView for the Keywords. Is used to check if something is selected
+     * @param documentsTable is the tableView for the Documents. Is used to check if something is selected
+     * @param addKeywordToDocumentsBtn is the add button that has to be enabled when both tableViews have a selected property
+     * @param deleteConnectionToDocumentBtn is the delete button that has to be enabled when both tableViews have selected property
+     */
+    private void updateKeywordAddDeleteBtn(TableView keywordTable, TableView documentsTable, Button addKeywordToDocumentsBtn, Button deleteConnectionToDocumentBtn){
+        if (!keywordTable.getSelectionModel().isEmpty() && !documentsTable.getSelectionModel().isEmpty()){
+            addKeywordToDocumentsBtn.setDisable(false);
+            deleteConnectionToDocumentBtn.setDisable(false);
+        } else{
+            addKeywordToDocumentsBtn.setDisable(true);
+            deleteConnectionToDocumentBtn.setDisable(true);
         }
     }
 

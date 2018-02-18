@@ -1,8 +1,10 @@
 package sample;
 
 import javafx.collections.ObservableList;
+import org.sqlite.SQLiteException;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class Controller {
@@ -17,7 +19,8 @@ public class Controller {
     }
 
     public void getaddDocument(Document document){
-        documentData.addDocument(document);
+
+            documentData.addDocument(document);
 
     }
 
@@ -41,7 +44,7 @@ public class Controller {
         documentData.addKeyword(keyword);
     }
 
-    public void connectKeywordToDocument(int id, String keyword){
+    public void connectKeywordToDocument(int id, int keyword){
         documentData.addKeywordsToDocument(id, keyword);
     }
 
@@ -50,13 +53,27 @@ public class Controller {
 
     }
 
-    public void deleteSingleKeyword(int keyword, String id){
+    public void deleteSingleKeyword(int keyword, int id){
         documentData.deleteSingleKeyword(keyword, id);
     }
 
 
-    public String getNametest(){
-        return documentData.getNametest();
+    public void startKeywordIDQuery(int id){
+        documentData.startKeywordReferenceQuery(id);
+
+    }
+
+
+    public void startKeywordDisplayQuery(int keywordID){
+        documentData.startKeywordDisplayQuery(keywordID);
+    }
+
+    public  ArrayList<String> getDisplayKeywordsArray(){
+        return documentData.displayKeywordsArray;
+    }
+
+    public List<Integer> getKeywordIdArray(){
+        return documentData.getkeywordIDArray();
     }
 
 }
