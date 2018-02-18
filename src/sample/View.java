@@ -60,7 +60,7 @@ public class View extends Application {
         Button addDocumentBtn = new Button("+");
         addDocumentBtn.setDisable(true);
         Button deleteDocumentBtn = new Button("-");
-
+        deleteDocumentBtn.setDisable(true);
         addDocumentBtn.setMinSize(30.0, 30.0);
         deleteDocumentBtn.setMinSize(30.0, 30.0);
 
@@ -119,10 +119,15 @@ public class View extends Application {
             Label keywordLabel = new Label("Keyword: ");
             TextField keywordTextField = new TextField();
             Button addKeywordBtn = new Button("+");
+            addKeywordBtn.setDisable(true);
             Button deleteKeywordBtn = new Button("-");
+            deleteKeywordBtn.setDisable(true);
+
             Button deleteConnectionToDocumentBtn = new Button("Delete");
             Button addKeywordToDocumentsBtn = new Button("Add");
+
             keyWordsVBox.getChildren().addAll(keywordTable, addKeywordToDocumentsBtn, deleteConnectionToDocumentBtn,keywordLabel, keywordTextField, addKeywordBtn, deleteKeywordBtn);
+
             addKeywordToDocumentsBtn.setDisable(true);
             deleteConnectionToDocumentBtn.setDisable(true);
             try{
@@ -143,7 +148,21 @@ public class View extends Application {
                     keywordTable.getSelectionModel().clearSelection();
                 });
 
+
+                keywordTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+                    if (newValue.length() > 0){
+                        addKeywordBtn.setDisable(false);
+                    }else
+                        addKeywordBtn.setDisable(true);
+
+                });
+
                 keywordTable.getSelectionModel().selectedItemProperty().addListener(observable -> {
+                    if (!keywordTable.getSelectionModel().isEmpty()){
+                        deleteKeywordBtn.setDisable(false);
+                    }else {
+                        deleteKeywordBtn.setDisable(true);
+                    }
                   updateKeywordAddDeleteBtn(keywordTable, documentsTable, addKeywordToDocumentsBtn, deleteConnectionToDocumentBtn);
                 });
 
@@ -165,7 +184,7 @@ public class View extends Application {
                            System.out.println("No Name specified");
                        }
                    }catch (NullPointerException z){
-                       System.out.println(z + "This is z");
+                       System.out.println(z + "null");
                    }
                });
 
@@ -181,7 +200,7 @@ public class View extends Application {
                            controller.startQuery();
                        }
                    }catch (NullPointerException x){
-                       System.out.println(x + "this is x");
+                       System.out.println(x + "x");
                    }
                });
 
@@ -215,9 +234,8 @@ public class View extends Application {
                         System.out.println(" delete connection to Document " + e);
                     }
                 });
-
-            }catch (Exception e){
-                System.out.println(e + "this error is bad mmkay");
+                }catch (Exception e){
+                System.out.println(e + "error while deleting the connection between the document and the keyword");
             }
         });
 
@@ -249,6 +267,8 @@ public class View extends Application {
                 System.out.println("That is not a Number you twat!" + e);
             }
         });
+
+
 
         /**
          * Deletes the document together with every the connected keywords that are connected to it in the tables
@@ -284,6 +304,7 @@ public class View extends Application {
                 System.out.println(e + "This is caught, idk why this error happens, but every still works");
             }
             if (!documentsTable.getSelectionModel().isEmpty()){
+                deleteDocumentBtn.setDisable(false);
                 List<Integer> keywordIDArray = controller.getKeywordIdArray();
                 for (int i = 0; i < keywordIDArray.size(); i++){
                     System.out.println(keywordIDArray.get(i));
@@ -294,6 +315,8 @@ public class View extends Application {
                     keywordsTextArea.appendText(keywordArrayList.get(i) + " ");
                 }
                 keywordArrayList.clear();
+            } else {
+                deleteDocumentBtn.setDisable(true);
             }
         });
         controller.startQuery();
