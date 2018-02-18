@@ -8,25 +8,24 @@ import javafx.scene.control.CheckBox;
 
 public class Keyword {
     private SimpleStringProperty keywordName;
-    private CheckBox checkBox;
+    private int keywordID;
 
 
     public Keyword(String keywordName){
         this.keywordName = new SimpleStringProperty(keywordName);
-        this.checkBox = new CheckBox();
     }
+
+    public Keyword(String keywordName, int keywordID){
+        this.keywordName = new SimpleStringProperty(keywordName);
+        this.keywordID = keywordID;
+    }
+
 
     public String getKeyword() {
         return keywordName.get();
     }
 
-   public CheckBox getCheckBox(){
-        return checkBox;
-   }
-
-   public void setCheckBox(){
-        this.checkBox = checkBox;
-   }
-
-
+    public int getKeywordID() {
+        return keywordID;
+    }
 }
