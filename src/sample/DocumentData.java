@@ -9,23 +9,26 @@ import javafx.collections.ObservableList;
 public class DocumentData {
     private ObservableList<Document> documentObservableList = FXCollections.observableArrayList();
     private ObservableList<Keyword> keywordObservableList = FXCollections.observableArrayList();
-
-
-
+    //Returns an Observable list for the keywords
+    public ObservableList<Keyword> getKeywordObservableList() {
+        return keywordObservableList;
+    }
+    //Returns an Observable list for the documents
+    public ObservableList<Document> getDocumentObservableList() {
+        return this.documentObservableList;
+    }
 
     private String jdbc = "jdbc:sqlite";
-    private String filename = "bookDatabase.db";
+    private String filename = "documentDatabase.db";
     private String url = jdbc + ":" +filename;
 
 
-    public void setFilename(String filename) {
-        this.filename = filename;
-        documentTableQuery();
 
 
-
-    }
-
+    /**
+     * Method that creates the data base if none exists
+     * also provides the driver
+     */
     protected DocumentData(){
         String driver = "org.sqlite.JDBC";
         try{
@@ -37,40 +40,34 @@ public class DocumentData {
             e.printStackTrace();
         }
     }
+
+
+    // method to start the document and keyword queries, used when the tables need to be updated etc.
     public void startQuery(){
         documentTableQuery();
         keywordsTableQuery();
     }
 
-    //Returns an Observable list for the keywords
-    public ObservableList<Keyword> getKeywordObservableList() {
-        return keywordObservableList;
-    }
-    //Returns an Observable list for the documents
-    public ObservableList<Document> getDocumentObservableList() {
-        return this.documentObservableList;
-    }
+
 
     //SQL query to delete a document from the documents table
-    public int deleteDocument(int document){
+    public void deleteDocument(int document){
         try (Connection connection = DriverManager.getConnection(url)){
             try (PreparedStatement deleteStatement = connection.prepareStatement(
                     "DELETE FROM Documents WHERE id == ?;"
             )){
                 deleteStatement.setInt(1, document);
-                return deleteStatement.executeUpdate();
+                deleteStatement.executeUpdate();
                 }
         }catch (SQLException e){
             e.printStackTrace();
         }
-     return -1;
     }
 
 
     /**
      * SQL query to delete a keyword from the keywords table
-     * @param keyword
-     * @return
+     * @param keyword is the keyword that will be deleted from the Keywords table
      */
     public void deleteKeyWord(String keyword){
         try (Connection connection = DriverManager.getConnection(url)){
@@ -89,8 +86,9 @@ public class DocumentData {
 
     /**
      * SQL query to add a keyword to the keywords table
-     * @param keyword
-     * @return
+     * a keyword from the Class Keyword was created
+     * @param keyword is a Keyword object that contains the keyword
+     *                the keyword will be added into the Keywords table
      */
     public void addKeyword(Keyword keyword){
         System.out.println(keyword.getKeyword());
@@ -99,7 +97,6 @@ public class DocumentData {
                     "INSERT INTO Keywords(Keyword) VALUES (?)")){
                 insertIntoStatement.setString(1, keyword.getKeyword());
                 insertIntoStatement.execute();
-
             }
             }catch (SQLException e){
             System.out.println(e);
@@ -109,8 +106,8 @@ public class DocumentData {
 
     /**
      * SQL query to add a document to the documents table
-      * @param document
-     * @return
+     * these are the user inputs taken in the view
+     * @param document a new document was created, this document contains the ID, the title and the author
      */
     public void addDocument(Document document){
         try ( Connection connection = DriverManager.getConnection(url)){
@@ -129,21 +126,12 @@ public class DocumentData {
     }
 
     /**
-     * initiates the select queries
-     */
-
-    //DELETE
-    private int keywordID;
-    protected int getKeywordID(){
-        //System.out.println(keywordID);
-        return keywordID;
-    }
-
-
-
-
-    /**
-     *Starts the query for the keywords table
+     * starts the query for the keywords table
+     * selects the keyword and the ID from the table Keywords
+     * creates a new keyword from the class Keyword
+     * both values are given to the new keyword
+     * the keywords are then added to an observable list
+     *
      */
     private void keywordsTableQuery(){
         synchronized (this.keywordObservableList) {
@@ -159,10 +147,8 @@ public class DocumentData {
                         String keywordName = cursor.getString(1);
                         int id = cursor.getInt(2);
                         Keyword keywords = new Keyword(keywordName, id);
-                        this.keywordID = keywords.getKeywordID();
                         keywordObservableList.addAll(keywords);
-
-                    }
+                        }
                 }
             } catch (SQLException e) {
                 System.out.println("NANIII " + e);
@@ -171,13 +157,16 @@ public class DocumentData {
     }
 
     /**
-     *
+     * this method starts the query for the Document table
+     * it selects the id, the title and the author from the Documents table
+     * these values are then given to the Document class
+     * a new document is created
+     * the document(s) are then added to an observable list
      */
     private void documentTableQuery(){
         synchronized (this.documentObservableList){
             this.documentObservableList.clear();
             this.url = jdbc + ":" + filename;
-
             String sqlQuery =
                     "SELECT ID, title, author " +
                     "FROM Documents";
@@ -192,7 +181,6 @@ public class DocumentData {
                         String author = cursor.getString(3);
                         Document documents = new Document(id, title, author);
                         documentObservableList.addAll(documents);
-
                     }
                 }
             }catch (SQLException e){
@@ -203,11 +191,16 @@ public class DocumentData {
     }
 
 
-    public void addKeywordsToDocument(int id, int keywordID){
+    /**
+     * this method adds the document ID and the Keyword ID into the ActiveKeywords table
+     * @param documentId is the document ID that will be stored in this table
+     * @param keywordID is the keyword ID that will be stored in this table
+     */
+    public void addKeywordsToDocument(int documentId, int keywordID){
         try ( Connection connection = DriverManager.getConnection(url)){
             try(PreparedStatement insertIntostatement = connection.prepareStatement(
                     "INSERT INTO ActiveKeywords(ID, Keyword) VALUES (?, ?)")) {
-                insertIntostatement.setInt(1, id);
+                insertIntostatement.setInt(1, documentId);
                 insertIntostatement.setInt(2, keywordID);
                 insertIntostatement.execute();
             }
@@ -285,7 +278,7 @@ public class DocumentData {
 
     /**
      * creates the Keyword table, where every Keyword will be stored
-     * creates  a column for the automatically generated ID and a column for the
+     * creates  a column for the automatically generated ID and a column for the Keyword
      */
     private void createKeywordsTable(){
         try (Connection connection = DriverManager.getConnection(url)){
@@ -299,6 +292,10 @@ public class DocumentData {
         }
     }
 
+    /**
+     * creates the ActiveKeywords table
+     * in this table the Document ID and the Keyword ID will be stored
+     */
     private void createKeywordToDocumentsTable(){
         try (Connection connection = DriverManager.getConnection(url)){
             String query =
@@ -314,18 +311,22 @@ public class DocumentData {
 
 
 
+    // The keywordIDArray contains the keywordIDs, these will later be given to an other query
+    private List<Integer> keywordIDArray = new ArrayList<>();
+    protected List<Integer> getkeywordIDArray(){
+        return keywordIDArray;
+    }
 
     public void startKeywordReferenceQuery(int id){
         getKeywordsIdReferenceQuery(id);
     }
 
 
-    private List<Integer> keywordIDArray = new ArrayList<>();
-    protected List<Integer> getkeywordIDArray(){
-        return keywordIDArray;
-    }
-
-    //FIXME change it so the Keyword Table is asked not the ActiveKeywords table, please!
+    /**
+     * this method selects the id and the keyword from the ActiveKeywords table
+     * @param id is the selected Document id
+     *  the keywordID is added to the keywordIDArray
+     */
     private void getKeywordsIdReferenceQuery(int id){
         this.url = jdbc + ":" + filename;
         String sqlQuery = "SELECT ID, keyword FROM ActiveKeywords WHERE ID ==" + id;
@@ -348,7 +349,10 @@ public class DocumentData {
     }
 
 
-
+    /**
+     * Starts the query to get the Keywords from the Keyword table
+     * @param keywordID is the ID from the ActiveKeyword table
+     */
     public void startKeywordDisplayQuery(int keywordID){
         startKeywordsDisplayQuery(keywordID);
     }
@@ -356,11 +360,10 @@ public class DocumentData {
 
 
     protected ArrayList<String> displayKeywordsArray = new ArrayList<>();
-
-    public ArrayList<String> getDisplayKeywordsArray() {
-        return displayKeywordsArray;
-    }
-
+    /**
+     * this query accesses the Keywords table and adds the keywords to an ArrayList, that way they can be accessed in the View
+     * @param keywordID the keywordID is the id from the keywordIDArray, that contains the IDs of the keywords connected to a document
+     */
     private void startKeywordsDisplayQuery(int keywordID){
         this.url = jdbc + ":" + filename;
         String sqlQuery = "SELECT ID, Keyword FROM Keywords WHERE ID ==" + keywordID;
@@ -372,7 +375,6 @@ public class DocumentData {
                 while (cursor.next()) {
                     String keywordToDisplay = cursor.getString(2);
                     displayKeywordsArray.add(keywordToDisplay);
-                    System.out.println(keywordToDisplay);
 
                 }
             }

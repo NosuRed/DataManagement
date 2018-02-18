@@ -22,13 +22,10 @@ public class View extends Application {
 
     private final TableView<Document> documentsTable = new TableView<>();
     private final TableView<Keyword> keywordTable = new TableView<>();
-    private String keywordList;
     @Override
     public void start(Stage primaryStage) throws Exception{
 
         VBox root = new VBox();
-        final String fileName = "bookDatabase.db";
-        controller.setFilename(fileName);
         controller.startQuery();
 
         TableColumn<Document, Integer> idColumn = new TableColumn<>("ID");
@@ -155,11 +152,10 @@ public class View extends Application {
                 });
 
 
-                // When a keyword is put into the text field, it will be added to the table view and displayed
+                // When a keyword is put into the text field, it will be added to the table view and displayed, queries are are called to update
                addKeywordBtn.setOnAction(add ->{
                    try {
-
-                        // Getting the keyword from the text field
+                       // Getting the keyword from the text field
                        String value = keywordTextField.getText();
                        //If the text field is not empty, the keyword can be added
                        if (!value.isEmpty()) {
@@ -287,8 +283,6 @@ public class View extends Application {
             }catch (NullPointerException e){
                 System.out.println(e + "This is caught, idk why this error happens, but every still works");
             }
-
-
             if (!documentsTable.getSelectionModel().isEmpty()){
                 List<Integer> keywordIDArray = controller.getKeywordIdArray();
                 for (int i = 0; i < keywordIDArray.size(); i++){

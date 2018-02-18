@@ -10,19 +10,14 @@ import java.util.List;
 public class Controller {
     private DocumentData documentData = new DocumentData();
 
-    public void setFilename(String filename){
-        documentData.setFilename(filename);
-    }
 
     public ObservableList<Document> getDocumentsDataObList() {
         return documentData.getDocumentObservableList();
     }
 
     public void getaddDocument(Document document){
-
             documentData.addDocument(document);
-
-    }
+            }
 
     public void startQuery(){
         documentData.startQuery();
