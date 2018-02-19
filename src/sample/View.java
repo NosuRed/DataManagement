@@ -287,8 +287,6 @@ public class View extends Application {
                 } else {
                     controller.deletedConnectedKeywordFromDocument(document.getID());
                     controller.deleteDocument(document.getID());
-
-
                     controller.startQuery();
                 }
             }catch (NullPointerException b){
@@ -305,15 +303,18 @@ public class View extends Application {
                 for (int i = 0; i < keywordIDArray.size(); i++){
                     System.out.println(keywordIDArray.get(i));
                     controller.startKeywordDisplayQuery(keywordIDArray.get(i));
-                }controller.getKeywordIdArray().clear();
+                }
+                controller.getKeywordIdArray().clear();
                 ArrayList<String> keywordArrayList = controller.getDisplayKeywordsArray();
+
+                keywordsTextArea.clear();
                 for (int i = 0; i < keywordArrayList.size(); i++){
                     keywordsTextArea.appendText(keywordArrayList.get(i) + " ");
-                }
-                keywordArrayList.clear();
+                }keywordArrayList.clear();
             } else {
                 deleteDocumentBtn.setDisable(true);
             }
+
         });
         controller.startQuery();
 

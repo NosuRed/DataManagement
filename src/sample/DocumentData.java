@@ -5,6 +5,7 @@ import java.util.List;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.sqlite.SQLiteException;
 
 public class DocumentData {
     private ObservableList<Document> documentObservableList = FXCollections.observableArrayList();
@@ -185,23 +186,29 @@ public class DocumentData {
                 }
 
         }catch (SQLException e){
-            e.printStackTrace();
+            System.out.println("This is a test for " + e);
         }
 
     }
 
     /**
      * this method adds the document ID and the Keyword ID into the ActiveKeywords table
+     * if the entry already exists it does not add the keyword again
      * @param documentId is the document ID that will be stored in this table
      * @param keywordID is the keyword ID that will be stored in this table
      */
     public void addKeywordsToDocument(int documentId, int keywordID){
         try ( Connection connection = DriverManager.getConnection(url)){
-            try(PreparedStatement insertIntostatement = connection.prepareStatement(
-                    "INSERT INTO ActiveKeywords(ID, Keyword) VALUES (?, ?)")) {
-                insertIntostatement.setInt(1, documentId);
-                insertIntostatement.setInt(2, keywordID);
-                insertIntostatement.execute();
+            try(PreparedStatement insertIntoStatement = connection.prepareStatement(
+                    "INSERT INTO ActiveKeywords(ID, Keyword) SELECT ?, ? " +
+                            "WHERE NOT EXISTS (SELECT ID, Keyword " +
+                            "FROM ActiveKeywords" +
+                            " WHERE ID = ? AND Keyword = ?)")) {
+                insertIntoStatement.setInt(1, documentId);
+                insertIntoStatement.setInt(2, keywordID);
+                insertIntoStatement.setInt(3, documentId);
+                insertIntoStatement.setInt(4, keywordID);
+                insertIntoStatement.execute();
             }
         }catch (SQLException e){
             e.printStackTrace();
@@ -242,7 +249,7 @@ public class DocumentData {
 
     // The keywordIDArray contains the keywordIDs, these will later be given to an other query
     private List<Integer> keywordIDArray = new ArrayList<>();
-    protected List<Integer> getkeywordIDArray(){
+    protected List<Integer> getKeywordIDArray(){
         return keywordIDArray;
     }
 
@@ -267,7 +274,7 @@ public class DocumentData {
                 while (cursor.next()) {
                     int ID = cursor.getInt(1);
                     int keywordID = cursor.getInt(2);
-                    System.out.println(ID +" : "+ keywordID);
+                    //System.out.println(ID +" : "+ keywordID);
                     keywordIDArray.add(keywordID);
 
                 }

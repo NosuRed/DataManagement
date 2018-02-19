@@ -1,7 +1,6 @@
 package sample;
 
 import javafx.collections.ObservableList;
-import org.sqlite.SQLiteException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +70,7 @@ public class Controller {
     }
 
     public List<Integer> getKeywordIdArray(){
-        return documentData.getkeywordIDArray();
+        return documentData.getKeywordIDArray();
     }
 
 }
