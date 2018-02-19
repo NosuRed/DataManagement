@@ -298,13 +298,8 @@ public class View extends Application {
 
         // Adds the keyword to the text area designated for the keyword display
         documentsTable.getSelectionModel().selectedItemProperty().addListener((Observable observable) -> {
-            keywordsTextArea.clear();
-            try {
-                controller.startKeywordIDQuery(documentsTable.getSelectionModel().getSelectedItem().getID());
-            }catch (NullPointerException e){
-                System.out.println(e + "This is caught, idk why this error happens, but every still works");
-            }
             if (!documentsTable.getSelectionModel().isEmpty()){
+                controller.startKeywordIDQuery(documentsTable.getSelectionModel().getSelectedItem().getID());
                 deleteDocumentBtn.setDisable(false);
                 List<Integer> keywordIDArray = controller.getKeywordIdArray();
                 for (int i = 0; i < keywordIDArray.size(); i++){

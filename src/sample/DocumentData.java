@@ -113,14 +113,14 @@ public class DocumentData {
 
     /**
      * SQL query to delete a keyword from the keywords table
-     * @param keyword is the keyword that will be deleted from the Keywords table
+     * @param keywordID is the keyword that will be deleted from the Keywords table
      */
-    public void deleteKeyWord(int keyword){
+    public void deleteKeyWord(int keywordID){
         try (Connection connection = DriverManager.getConnection(url)){
             try (PreparedStatement deleteStatement = connection.prepareStatement(
                     "DELETE FROM Keywords WHERE ID == ?;"
             )){
-                deleteStatement.setInt(1,keyword);
+                deleteStatement.setInt(1,keywordID);
                  deleteStatement.executeUpdate();
             }catch (SQLException e){
                 System.out.println(e + "error in deleteKeyWord");
@@ -131,12 +131,12 @@ public class DocumentData {
     }
 
 
-    public void deleteKeywordsFromActiveKeywordTable(int keyword){
+    public void deleteKeywordsFromActiveKeywordTable(int keywordID){
         try (Connection connection = DriverManager.getConnection(url)){
             try (PreparedStatement deleteStatement = connection.prepareStatement(
                     "DELETE FROM ActiveKeywords WHERE keyword == ?;"
             )){
-                deleteStatement.setInt(1,keyword);
+                deleteStatement.setInt(1,keywordID);
                 deleteStatement.executeUpdate();
             }catch (SQLException e){
                 System.out.println(e + "error in deleteKeyWord");
@@ -239,8 +239,6 @@ public class DocumentData {
             }
         }
     }
-
-
 
     // The keywordIDArray contains the keywordIDs, these will later be given to an other query
     private List<Integer> keywordIDArray = new ArrayList<>();
