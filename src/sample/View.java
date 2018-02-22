@@ -2,6 +2,7 @@ package sample;
 
 
 import javafx.application.Application;
+import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -10,6 +11,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
@@ -25,8 +30,13 @@ public class View extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
 
+
+        RefURL refURL = new RefURL(10, "This is a test you monster");
+        System.out.println(refURL.getReferenceID() + " " + refURL.getUrlStr());
+
         VBox root = new VBox();
-        controller.startQuery();
+        controller.startDocumentTableQuery();
+        controller.startKeywordTableQuery();
 
         TableColumn<Document, Integer> idColumn = new TableColumn<>("ID");
         idColumn.setCellValueFactory(new PropertyValueFactory<>("ID"));
@@ -41,6 +51,8 @@ public class View extends Application {
         authorName.setMinWidth(110.0);
 
         documentsTable.setItems(controller.getDocumentsDataObList());
+
+
         documentsTable.getColumns().addAll(idColumn, bookTitle, authorName);
         documentsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         TableColumn<Keyword, String> keywordName = new TableColumn<>("Keyword");
@@ -52,6 +64,8 @@ public class View extends Application {
         //checkBoxName.setCellValueFactory(new PropertyValueFactory<>("checkBox"));
 
         keywordTable.setItems(controller.getKeywordsObList());
+
+
         keywordTable.getColumns().add(keywordName);
         keywordTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
@@ -93,12 +107,22 @@ public class View extends Application {
         authorFieldHbox.getChildren().addAll(authorLabel, authorTextField);
         authorFieldHbox.setSpacing(15);
 
-
+        // elements for the keyword display in the main window
         HBox keywordsHbox = new HBox();
         TextArea keywordsTextArea = new TextArea();
         Label keywordDisplayLabel = new Label("Keywords");
         keywordsTextArea.setEditable(false);
+        keywordsTextArea.setWrapText(true);
         Button openKeywordsWindowBtn = new Button("Keywords");
+
+        // elements for the reference display in the main window
+        HBox referenceHBox = new HBox();
+        Button openReferenceWindowBtn = new Button("References");
+        TextArea refereceTextArea = new TextArea();
+        Label referenceDisplayLabel = new Label("References");
+        refereceTextArea.setEditable(false);
+        refereceTextArea.setWrapText(true);
+        referenceHBox.getChildren().addAll(referenceDisplayLabel, refereceTextArea, openReferenceWindowBtn);
 
         keywordsHbox.getChildren().addAll(keywordDisplayLabel, keywordsTextArea, openKeywordsWindowBtn);
         keywordsHbox.setSpacing(10.1);
@@ -107,14 +131,16 @@ public class View extends Application {
         // new PropertyValueFactory<>("ID") => getID
         // new PropertyValueFactory<>("BookID") => getBookID
 
-        root.getChildren().addAll(documentsTable, addAndDeleteHbox, idFields, titleFieldHbox, authorFieldHbox, keywordsHbox);
+        root.getChildren().addAll(documentsTable, addAndDeleteHbox, idFields, titleFieldHbox, authorFieldHbox, keywordsHbox, referenceHBox);
         primaryStage.setTitle(title);
         primaryStage.setScene(new Scene(root, 300, 275));
         primaryStage.show();
 
 
         //When the button is pressed, a new window with a new interface is created
-        openKeywordsWindowBtn.setOnAction(c -> {
+        openKeywordsWindowBtn.setDisable(true);
+        openKeywordsWindowBtn.setOnAction(keywordWindowOpenEvent -> {
+            openKeywordsWindowBtn.setDisable(true);
             VBox keyWordsVBox = new VBox();
             Label keywordLabel = new Label("Keyword: ");
             TextField keywordTextField = new TextField();
@@ -137,14 +163,18 @@ public class View extends Application {
                keywordStage.setScene(new Scene(keyWordsVBox,200,200));
                keywordStage.setMinWidth(300);
                keywordStage.setMinHeight(300);
+               keywordStage.initModality(Modality.WINDOW_MODAL);
+               keywordStage.initOwner(primaryStage);
                keywordStage.show();
 
                //When the main window is closed, the keyword window will also be closed
                primaryStage.setOnCloseRequest(closeEvent -> {
                     keywordStage.close();
+
                 });
 
                 keywordStage.setOnCloseRequest(keywordStageCloseEvent -> {
+                    openKeywordsWindowBtn.setDisable(false);
                     keywordTable.getSelectionModel().clearSelection();
                 });
 
@@ -179,7 +209,7 @@ public class View extends Application {
                        //If the text field is not empty, the keyword can be added
                        if (!value.isEmpty()) {
                            controller.addKeyword(new Keyword(value));
-                           controller.startQuery();
+                           controller.startKeywordTableQuery();
                        } else {
                            System.out.println("No Name specified");
                        }
@@ -190,16 +220,18 @@ public class View extends Application {
 
                  // When a keyword is selected and this button is pressed, the selected keyword will be deleted
                 deleteKeywordBtn.setOnAction(event ->{
+                    Keyword keyword = keywordTable.getSelectionModel().getSelectedItem();
                    try {
-                       Keyword keyword = keywordTable.getSelectionModel().getSelectedItem();
                        if (null == keyword) {
                            System.out.println("No keyword has been selected!");
                        } else {
                            System.out.println("Keyword has been deleted");
                            controller.deleteKeyword(keyword.getKeywordID());
                            controller.deleteKeywordFromActiveKeywordQuery(keyword.getKeywordID());
-                           controller.startQuery();
+                           controller.startKeywordTableQuery();
+                           updateKeywordTextAreaDisplay(deleteDocumentBtn, keywordsTextArea);
                        }
+                       controller.startKeywordTableQuery();
                    }catch (NullPointerException x){
                        System.out.println(x + "x");
                    }
@@ -215,7 +247,7 @@ public class View extends Application {
                         int documentID = documentsTable.getSelectionModel().getSelectedItem().getID();
                         int keyword = keywordTable.getSelectionModel().getSelectedItem().getKeywordID();
                         controller.connectKeywordToDocument(documentID, keyword);
-                        controller.startQuery();
+                        updateKeywordTextAreaDisplay(deleteDocumentBtn, keywordsTextArea);
                     }catch (NullPointerException a){
                         System.out.println(a + "Please select something");
                     }
@@ -226,10 +258,11 @@ public class View extends Application {
                 // Deletes a keyword from a document
                 deleteConnectionToDocumentBtn.setOnAction(k ->{
                     try {
+
                         int id = documentsTable.getSelectionModel().getSelectedItem().getID();
                         int keyword = keywordTable.getSelectionModel().getSelectedItem().getKeywordID();
                         controller.deleteSingleKeyword(id, keyword);
-
+                        updateKeywordTextAreaDisplay(deleteDocumentBtn, keywordsTextArea);
                         System.out.println("Keyword connected to the document has been deleted");
                     }catch (NullPointerException e){
                         System.out.println(" delete connection to Document " + e);
@@ -240,9 +273,13 @@ public class View extends Application {
             }
         });
 
-
-
-
+        openReferenceWindowBtn.setOnAction(referenceWindowOpenEvent ->{
+            VBox referenceWindow = new VBox();
+            Stage referenceStage = new Stage();
+            referenceStage.setTitle("References");
+            referenceStage.setScene(new Scene(referenceWindow, 300, 275));
+            referenceStage.show();
+        });
 
         idTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             updateAddBtn(idTextField, titleTextField, authorTextField, addDocumentBtn);
@@ -261,9 +298,10 @@ public class View extends Application {
         addDocumentBtn.setOnAction(c ->{
             Integer intValue;
             try {
+
                 intValue = Integer.parseInt(idTextField.getText());
-                controller.getaddDocument(new Document(intValue, titleTextField.getText(), authorTextField.getText()));
-                controller.startQuery();
+                controller.addDocument(new Document(intValue, titleTextField.getText(), authorTextField.getText()));
+                controller.startDocumentTableQuery();
             } catch (NumberFormatException e){
                 System.out.println("That is not a Number you twat!" + e);
             }
@@ -287,38 +325,25 @@ public class View extends Application {
                 } else {
                     controller.deletedConnectedKeywordFromDocument(document.getID());
                     controller.deleteDocument(document.getID());
-                    controller.startQuery();
+                    keywordsTextArea.clear();
+                    controller.startDocumentTableQuery();
                 }
             }catch (NullPointerException b){
                 System.out.println(b + "this is b");
             }
         });
 
+
         // Adds the keyword to the text area designated for the keyword display
         documentsTable.getSelectionModel().selectedItemProperty().addListener((Observable observable) -> {
             if (!documentsTable.getSelectionModel().isEmpty()){
-                controller.startKeywordIDQuery(documentsTable.getSelectionModel().getSelectedItem().getID());
-                deleteDocumentBtn.setDisable(false);
-                List<Integer> keywordIDArray = controller.getKeywordIdArray();
-                for (int i = 0; i < keywordIDArray.size(); i++){
-                    System.out.println(keywordIDArray.get(i));
-                    controller.startKeywordDisplayQuery(keywordIDArray.get(i));
-                }
-                controller.getKeywordIdArray().clear();
-                ArrayList<String> keywordArrayList = controller.getDisplayKeywordsArray();
-
-                keywordsTextArea.clear();
-                for (int i = 0; i < keywordArrayList.size(); i++){
-                    keywordsTextArea.appendText(keywordArrayList.get(i) + " ");
-                }keywordArrayList.clear();
-            } else {
-                deleteDocumentBtn.setDisable(true);
+                openKeywordsWindowBtn.setDisable(false);
+            }else {
+                openKeywordsWindowBtn.setDisable(true);
             }
-
+        updateKeywordTextAreaDisplay(deleteDocumentBtn, keywordsTextArea);
         });
-        controller.startQuery();
-
-
+        controller.startKeywordTableQuery();
     }
 
 
@@ -354,6 +379,27 @@ public class View extends Application {
         } else{
             addKeywordToDocumentsBtn.setDisable(true);
             deleteConnectionToDocumentBtn.setDisable(true);
+        }
+    }
+
+    private void updateKeywordTextAreaDisplay(Button deleteDocumentBtn, TextArea keywordsTextArea){
+        if (!documentsTable.getSelectionModel().isEmpty()){
+            controller.startKeywordIDQuery(documentsTable.getSelectionModel().getSelectedItem().getID());
+            deleteDocumentBtn.setDisable(false);
+            List<Integer> keywordIDArray = controller.getKeywordIdArray();
+            for (int i = 0; i < keywordIDArray.size(); i++){
+                System.out.println(keywordIDArray.get(i));
+                controller.startKeywordDisplayQuery(keywordIDArray.get(i));
+            }
+            controller.getKeywordIdArray().clear();
+            ArrayList<String> keywordArrayList = controller.getDisplayKeywordsArray();
+
+            keywordsTextArea.clear();
+            for (int i = 0; i < keywordArrayList.size(); i++){
+                keywordsTextArea.appendText(keywordArrayList.get(i) + " ");
+            }keywordArrayList.clear();
+        } else {
+            deleteDocumentBtn.setDisable(true);
         }
     }
 

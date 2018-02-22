@@ -43,12 +43,13 @@ public class DocumentData {
     }
 
 
-    // method to start the document and keyword queries, used when the tables need to be updated etc.
-    public void startQuery(){
-        documentTableQuery();
+    // method to start the keyword queries, used when the table needs to be updated
+    public void startKeywordTableQuery(){
         keywordsTableQuery();
     }
-
+    public void startDocumentTableQuery(){
+        documentTableQuery();
+    }
 
 
     //SQL query to delete a document from the documents table

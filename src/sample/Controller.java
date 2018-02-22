@@ -14,12 +14,16 @@ public class Controller {
         return documentData.getDocumentObservableList();
     }
 
-    public void getaddDocument(Document document){
+    public void addDocument(Document document){
             documentData.addDocument(document);
             }
 
-    public void startQuery(){
-        documentData.startQuery();
+    public void startKeywordTableQuery(){
+        documentData.startKeywordTableQuery();
+    }
+
+    public void startDocumentTableQuery(){
+        documentData.startDocumentTableQuery();
     }
 
     public void deleteDocument(int document){
