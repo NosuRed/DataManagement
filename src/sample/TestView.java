@@ -530,7 +530,11 @@ public class TestView extends Application {
                     controller.addDocument(new Document(intValue, titleTextField.getText(), authorTextField.getText()));
                     controller.startDocumentTableQuery();
                 } catch (NumberFormatException e) {
-                    System.out.println("That is not a Number you twat!" + e);
+                    Alert errorDialog = new Alert(Alert.AlertType.WARNING);
+                    errorDialog.setTitle("ID already Exists error");
+                    errorDialog.setHeaderText(null);
+                    errorDialog.setContentText("This ID already exists! " + "\n" + "Please select another ID!");
+                    errorDialog.showAndWait();
                 } catch (ErrorExceptionThrow errorEvent) {
                     Alert errorAlter = new Alert(Alert.AlertType.INFORMATION);
                     errorAlter.setHeaderText(null);
@@ -642,7 +646,7 @@ public class TestView extends Application {
                 deleteDocumentBtn.setDisable(false);
                 List<Integer> keywordIDArray = controller.getKeywordIdArray();
                 for (int i = 0; i < keywordIDArray.size(); i++) {
-                    System.out.println(keywordIDArray.get(i));
+                    //System.out.println(keywordIDArray.get(i));
                     controller.startKeywordDisplayQuery(keywordIDArray.get(i));
                 }
                 controller.getKeywordIdArray().clear();
