@@ -3,6 +3,7 @@ package sample;
 public class RefURL extends Reference {
     private String urlStr;
 
+    //TODO comment
     protected RefURL(int referenceId, String urlStr){
         super.referenceId = referenceId;
         this.urlStr = urlStr;

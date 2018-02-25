@@ -1,11 +1,9 @@
 package sample;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.scene.control.CheckBox;
 
+
+//TODO comment
 public class Keyword {
     private SimpleStringProperty keywordName;
     private int keywordID;
