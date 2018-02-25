@@ -1,3 +1,4 @@
+
 package sample;
 
 
@@ -71,37 +72,33 @@ public class View extends Application {
         keywordTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         // creating the Hbox for the add and delete buttons
-        //HBox addAndDeleteHbox = new HBox();
+        HBox addAndDeleteHbox = new HBox();
         Button addDocumentBtn = new Button("+");
         addDocumentBtn.setDisable(true);
         Button deleteDocumentBtn = new Button("-");
         deleteDocumentBtn.setDisable(true);
         addDocumentBtn.setMinSize(30.0, 30.0);
         deleteDocumentBtn.setMinSize(30.0, 30.0);
-        Pane emptyPane1 = new Pane();
-        gridPane.setAlignment(Pos.CENTER);
-        gridPane.setHgap(10);
-        gridPane.setVgap(10);
-        gridPane.setPadding(new Insets(25, 25, 25, 25));
+
 
 
         Pane leftSpacePane = new Pane();
         Pane rightSpacePane = new Pane();
 
 
-        //HBox.setHgrow(leftSpacePane, Priority.ALWAYS);
-        //HBox.setHgrow(rightSpacePane, Priority.ALWAYS);
-        //addAndDeleteHbox.setSpacing(5.0);
-        //addAndDeleteHbox.getChildren().addAll(leftSpacePane, addDocumentBtn, deleteDocumentBtn, rightSpacePane);
+        HBox.setHgrow(leftSpacePane, Priority.ALWAYS);
+        HBox.setHgrow(rightSpacePane, Priority.ALWAYS);
+        addAndDeleteHbox.setSpacing(5.0);
+        addAndDeleteHbox.getChildren().addAll(leftSpacePane, addDocumentBtn, deleteDocumentBtn, rightSpacePane);
 
         // creating the TextFields for the user inputs
-        //HBox idFields = new HBox();
+        HBox idFields = new HBox();
         Label idTextLabel = new Label("ID");
         TextField idTextField = new TextField();
-        //idFields.getChildren().addAll(idTextLabel, idTextField);
-        //idFields.setSpacing(38);
+        idFields.getChildren().addAll(idTextLabel, idTextField);
+        idFields.setSpacing(38);
 
-        gridPane.setGridLinesVisible(true);
+
         HBox titleFieldHbox = new HBox();
         Label titleLabel = new Label("Title");
         TextField titleTextField = new TextField();
@@ -139,7 +136,7 @@ public class View extends Application {
 
 
 
-        root.getChildren().addAll(documentsTable, gridPane, titleFieldHbox, authorFieldHbox, keywordsHbox, referenceHBox);
+        root.getChildren().addAll(documentsTable, addAndDeleteHbox, idFields , titleFieldHbox, authorFieldHbox, keywordsHbox, referenceHBox);
         primaryStage.setTitle(title);
         primaryStage.setScene(new Scene(root, 300, 275));
         primaryStage.show();
@@ -583,6 +580,6 @@ public class View extends Application {
     }
 
     public static void main(String[] args) {
-        launch(args);
+        //launch(args);
     }
 }
