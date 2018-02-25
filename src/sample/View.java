@@ -4,19 +4,21 @@ package sample;
 import javafx.application.Application;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,16 +29,15 @@ public class View extends Application {
 
     private final TableView<Document> documentsTable = new TableView<>();
     private final TableView<Keyword> keywordTable = new TableView<>();
+    private int docID = -1;
     @Override
     public void start(Stage primaryStage) throws Exception{
-
-
-        RefURL refURL = new RefURL(10, "This is a test you monster");
-        System.out.println(refURL.getReferenceID() + " " + refURL.getUrlStr());
-
         VBox root = new VBox();
         controller.startDocumentTableQuery();
         controller.startKeywordTableQuery();
+
+        GridPane gridPane = new GridPane();
+
 
         TableColumn<Document, Integer> idColumn = new TableColumn<>("ID");
         idColumn.setCellValueFactory(new PropertyValueFactory<>("ID"));
@@ -70,30 +71,37 @@ public class View extends Application {
         keywordTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         // creating the Hbox for the add and delete buttons
-        HBox addAndDeleteHbox = new HBox();
+        //HBox addAndDeleteHbox = new HBox();
         Button addDocumentBtn = new Button("+");
         addDocumentBtn.setDisable(true);
         Button deleteDocumentBtn = new Button("-");
         deleteDocumentBtn.setDisable(true);
         addDocumentBtn.setMinSize(30.0, 30.0);
         deleteDocumentBtn.setMinSize(30.0, 30.0);
+        Pane emptyPane1 = new Pane();
+        gridPane.setAlignment(Pos.CENTER);
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+        gridPane.setPadding(new Insets(25, 25, 25, 25));
+
 
         Pane leftSpacePane = new Pane();
         Pane rightSpacePane = new Pane();
 
 
-        HBox.setHgrow(leftSpacePane, Priority.ALWAYS);
-        HBox.setHgrow(rightSpacePane, Priority.ALWAYS);
-        addAndDeleteHbox.setSpacing(5.0);
-        addAndDeleteHbox.getChildren().addAll(leftSpacePane, addDocumentBtn, deleteDocumentBtn, rightSpacePane);
+        //HBox.setHgrow(leftSpacePane, Priority.ALWAYS);
+        //HBox.setHgrow(rightSpacePane, Priority.ALWAYS);
+        //addAndDeleteHbox.setSpacing(5.0);
+        //addAndDeleteHbox.getChildren().addAll(leftSpacePane, addDocumentBtn, deleteDocumentBtn, rightSpacePane);
 
         // creating the TextFields for the user inputs
-        HBox idFields = new HBox();
+        //HBox idFields = new HBox();
         Label idTextLabel = new Label("ID");
         TextField idTextField = new TextField();
-        idFields.getChildren().addAll(idTextLabel, idTextField);
-        idFields.setSpacing(38);
+        //idFields.getChildren().addAll(idTextLabel, idTextField);
+        //idFields.setSpacing(38);
 
+        gridPane.setGridLinesVisible(true);
         HBox titleFieldHbox = new HBox();
         Label titleLabel = new Label("Title");
         TextField titleTextField = new TextField();
@@ -115,9 +123,11 @@ public class View extends Application {
         keywordsTextArea.setWrapText(true);
         Button openKeywordsWindowBtn = new Button("Keywords");
 
+
         // elements for the reference display in the main window
         HBox referenceHBox = new HBox();
         Button openReferenceWindowBtn = new Button("References");
+        openReferenceWindowBtn.setDisable(true);
         TextArea refereceTextArea = new TextArea();
         Label referenceDisplayLabel = new Label("References");
         refereceTextArea.setEditable(false);
@@ -128,17 +138,17 @@ public class View extends Application {
         keywordsHbox.setSpacing(10.1);
 
 
-        // new PropertyValueFactory<>("ID") => getID
-        // new PropertyValueFactory<>("BookID") => getBookID
 
-        root.getChildren().addAll(documentsTable, addAndDeleteHbox, idFields, titleFieldHbox, authorFieldHbox, keywordsHbox, referenceHBox);
+        root.getChildren().addAll(documentsTable, gridPane, titleFieldHbox, authorFieldHbox, keywordsHbox, referenceHBox);
         primaryStage.setTitle(title);
         primaryStage.setScene(new Scene(root, 300, 275));
         primaryStage.show();
 
 
-        //When the button is pressed, a new window with a new interface is created
+
         openKeywordsWindowBtn.setDisable(true);
+
+        // stage for the Keywords when the button is clicked
         openKeywordsWindowBtn.setOnAction(keywordWindowOpenEvent -> {
             openKeywordsWindowBtn.setDisable(true);
             VBox keyWordsVBox = new VBox();
@@ -167,12 +177,14 @@ public class View extends Application {
                keywordStage.initOwner(primaryStage);
                keywordStage.show();
 
+               /*
                //When the main window is closed, the keyword window will also be closed
                primaryStage.setOnCloseRequest(closeEvent -> {
                     keywordStage.close();
 
-                });
+                });*/
 
+               // when the keywordstage is closed, the keyword btn gets enabled again
                 keywordStage.setOnCloseRequest(keywordStageCloseEvent -> {
                     openKeywordsWindowBtn.setDisable(false);
                     keywordTable.getSelectionModel().clearSelection();
@@ -196,9 +208,11 @@ public class View extends Application {
                   updateKeywordAddDeleteBtn(keywordTable, documentsTable, addKeywordToDocumentsBtn, deleteConnectionToDocumentBtn);
                 });
 
+                /*
+                //Dead code, kept for safety
                 documentsTable.getSelectionModel().selectedItemProperty().addListener(observable -> {
                     updateKeywordAddDeleteBtn(keywordTable, documentsTable, addKeywordToDocumentsBtn, deleteConnectionToDocumentBtn);
-                });
+                });*/
 
 
                 // When a keyword is put into the text field, it will be added to the table view and displayed, queries are are called to update
@@ -208,8 +222,17 @@ public class View extends Application {
                        String value = keywordTextField.getText();
                        //If the text field is not empty, the keyword can be added
                        if (!value.isEmpty()) {
-                           controller.addKeyword(new Keyword(value));
-                           controller.startKeywordTableQuery();
+                           try {
+                               controller.addKeyword(new Keyword(value));
+                               controller.startKeywordTableQuery();
+                           }catch (ErrorExceptionThrow errorThrow){
+                               Alert errorAlert = new Alert(Alert.AlertType.WARNING);
+                               errorAlert.setTitle("Keyword already exists error!");
+                               errorAlert.setHeaderText(null);
+                               errorAlert.setContentText("This keyword already exists! " + "\n" + "Please select another keyword!");
+                               errorAlert.showAndWait();
+                           }
+
                        } else {
                            System.out.println("No Name specified");
                        }
@@ -273,13 +296,144 @@ public class View extends Application {
             }
         });
 
+
+        // reference stage when the button is clicked
         openReferenceWindowBtn.setOnAction(referenceWindowOpenEvent ->{
-            VBox referenceWindow = new VBox();
+            openReferenceWindowBtn.setDisable(true);
+            VBox referenceWindowVBox = new VBox();
+
+            TabPane referenceTabPane = new TabPane();
+            HBox urlHbox = new HBox();
+            Label urlLabel = new Label("URL: ");
+            Pane spacePaneHbox = new Pane();
+            TextField urlTextfield = new TextField();
+            Button urlConfirmBtn = new Button("OK");
+            HBox.setHgrow(urlTextfield, Priority.ALWAYS);
+            urlHbox.setSpacing(10);
+            urlHbox.getChildren().addAll(urlLabel, urlTextfield, spacePaneHbox, urlConfirmBtn);
+
+            Tab urlTab = new Tab();
+            urlTab.setText("URL");
+            urlTab.setClosable(false);
+            urlTab.setContent(urlHbox);
+
+            HBox filePathHbox = new HBox();
+            Label filePathLabel = new Label("File Path: ");
+            TextField filePathTextfield = new TextField();
+            filePathTextfield.setEditable(false);
+            Button filePathOpenBtn = new Button("Select");
+            filePathHbox.getChildren().addAll(filePathLabel, filePathTextfield, filePathOpenBtn);
+            Tab filePathTab = new Tab();
+            filePathTab.setText("File");
+            filePathTab.setClosable(false);
+            filePathTab.setContent(filePathHbox);
+
+
+
+            VBox archiveVBox = new VBox();
+            HBox shedHbox = new HBox();
+            Label archiveShedLabel = new Label("Shed: ");
+            TextField shedTextField = new TextField();
+            shedHbox.getChildren().addAll(archiveShedLabel, shedTextField);
+
+            HBox rackHBox = new HBox();
+            Label archiveRackLabel = new Label("Rack: ");
+            TextField rackTextField = new TextField();
+            rackHBox.getChildren().addAll(archiveRackLabel, rackTextField);
+
+            HBox folderHBox = new HBox();
+            Label archiveFolderLabel = new Label("Folder: ");
+            TextField folderTextField = new TextField();
+            folderHBox.getChildren().addAll(archiveFolderLabel, folderTextField);
+
+            Button archiveConfirmBtn = new Button("OK");
+            archiveVBox.getChildren().addAll(shedHbox, rackHBox, folderHBox, archiveConfirmBtn);
+
+            Tab archiveTab = new Tab();
+            archiveTab.setText("Archive");
+            archiveTab.setClosable(false);
+            archiveTab.setContent(archiveVBox);
+
+            referenceTabPane.getTabs().addAll(urlTab, filePathTab, archiveTab);
+
+            referenceWindowVBox.getChildren().addAll(referenceTabPane);
             Stage referenceStage = new Stage();
             referenceStage.setTitle("References");
-            referenceStage.setScene(new Scene(referenceWindow, 300, 275));
+            referenceStage.setScene(new Scene(referenceWindowVBox, 300, 275));
+            referenceStage.initModality(Modality.WINDOW_MODAL);
+            referenceStage.initOwner(primaryStage);
             referenceStage.show();
+
+            referenceStage.setOnCloseRequest(closeRequest ->{
+                openReferenceWindowBtn.setDisable(false);
+            });
+
+
+            RefFilePath refFilePath = controller.selectFilePath(docID);
+            if (null != refFilePath){
+                System.out.println(refFilePath.filePathStr + " " + refFilePath.getFileNameStr());
+                System.out.println("Hello");
+
+            }
+            filePathOpenBtn.setOnAction(openEvent -> {
+                FileChooser fileChooser = new FileChooser();
+                fileChooser.setTitle("Select a file");
+                File chosenFile = fileChooser.showOpenDialog(referenceStage);
+                if (null != chosenFile){
+                    controller.getAddIdToReferenceTable(docID);
+                    String chosenFilePath = chosenFile.getPath();
+                    String chosenFileName = chosenFile.getName();
+                    try {
+                        controller.getAddFileToPathTable(chosenFilePath, chosenFileName);
+                        refereceTextArea.setText(controller.selectReference(controller.selectReferenceID(docID)));
+                        referenceStage.close();
+                    }catch (ErrorExceptionThrow error){
+                       Alert errorDialog = new Alert(Alert.AlertType.WARNING);
+                       errorDialog.setTitle("File already Exists error");
+                       errorDialog.setHeaderText(null);
+                       errorDialog.setContentText("The selected Path already exists! " + "\n" + "Please select another File!");
+                       errorDialog.showAndWait();
+                    }
+
+
+
+                }
+
+            });
+
+            urlConfirmBtn.setOnAction(confirmEvent -> {
+                controller.getAddIdToReferenceTable(docID);
+                String urlText = urlTextfield.getText();
+                try {
+                    controller.getAddUrlToUrlTable(urlText);
+                    refereceTextArea.setText(controller.selectReference(controller.selectReferenceID(docID)));
+                    referenceStage.close();
+                }catch (ErrorExceptionThrow error){
+                    Alert errorAlert = new Alert(Alert.AlertType.WARNING);
+                    errorAlert.setTitle("Url already exists error");
+                    errorAlert.setHeaderText(null);
+                    errorAlert.setContentText("This url already exists! " + "\n" + "Please select another url!");
+                    errorAlert.showAndWait();
+                }
+
+
+            });
+
+            archiveConfirmBtn.setOnAction(confirmEvent -> {
+                controller.getAddIdToReferenceTable(docID);
+                String shed = shedTextField.getText();
+                String rack = rackTextField.getText();
+                String folder = folderTextField.getText();
+                controller.addToArchive(shed, rack, folder);
+                refereceTextArea.setText(controller.selectReference(controller.selectReferenceID(docID)));
+                referenceStage.close();
+
+            });
+
         });
+
+
+
 
         idTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             updateAddBtn(idTextField, titleTextField, authorTextField, addDocumentBtn);
@@ -298,12 +452,17 @@ public class View extends Application {
         addDocumentBtn.setOnAction(c ->{
             Integer intValue;
             try {
-
                 intValue = Integer.parseInt(idTextField.getText());
                 controller.addDocument(new Document(intValue, titleTextField.getText(), authorTextField.getText()));
                 controller.startDocumentTableQuery();
             } catch (NumberFormatException e){
                 System.out.println("That is not a Number you twat!" + e);
+            }catch (ErrorExceptionThrow errorEvent){
+                Alert errorAlter = new Alert(Alert.AlertType.INFORMATION);
+                errorAlter.setHeaderText(null);
+                errorAlter.setTitle("Unique ID error");
+                errorAlter.setContentText("This ID is already used! " + "\n" + "Please select another one.");
+                errorAlter.showAndWait();
             }
         });
 
@@ -325,6 +484,7 @@ public class View extends Application {
                 } else {
                     controller.deletedConnectedKeywordFromDocument(document.getID());
                     controller.deleteDocument(document.getID());
+
                     keywordsTextArea.clear();
                     controller.startDocumentTableQuery();
                 }
@@ -334,19 +494,38 @@ public class View extends Application {
         });
 
 
+        refereceTextArea.textProperty().addListener(changeEvent ->{
+            if (!refereceTextArea.getText().isEmpty()){
+                openReferenceWindowBtn.setDisable(true);
+            }else {
+                openReferenceWindowBtn.setDisable(false);
+            }
+        });
+
         // Adds the keyword to the text area designated for the keyword display
         documentsTable.getSelectionModel().selectedItemProperty().addListener((Observable observable) -> {
             if (!documentsTable.getSelectionModel().isEmpty()){
+                Document documentInformationStr = documentsTable.getSelectionModel().getSelectedItem();
+                idTextField.setText(Integer.toString(documentInformationStr.getID()));
+                titleTextField.setText(documentInformationStr.getTitle());
+                authorTextField.setText(documentInformationStr.getAuthor());
+                this.docID = documentsTable.getSelectionModel().getSelectedItem().getID();
                 openKeywordsWindowBtn.setDisable(false);
+                openReferenceWindowBtn.setDisable(false);
+                refereceTextArea.setText(controller.selectReference(controller.selectReferenceID(docID)));
             }else {
+                refereceTextArea.clear();
                 openKeywordsWindowBtn.setDisable(true);
+                openReferenceWindowBtn.setDisable(true);
+
             }
+
+            //TODO do the same for the Reference text Area to display
         updateKeywordTextAreaDisplay(deleteDocumentBtn, keywordsTextArea);
+
         });
         controller.startKeywordTableQuery();
     }
-
-
 
 
     /**

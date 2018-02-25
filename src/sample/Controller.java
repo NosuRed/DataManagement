@@ -9,12 +9,11 @@ import java.util.List;
 public class Controller {
     private DocumentData documentData = new DocumentData();
 
-
     public ObservableList<Document> getDocumentsDataObList() {
         return documentData.getDocumentObservableList();
     }
 
-    public void addDocument(Document document){
+    public void addDocument(Document document) throws ErrorExceptionThrow{
             documentData.addDocument(document);
             }
 
@@ -38,7 +37,7 @@ public class Controller {
         documentData.deleteKeyWord(keyword);
     }
 
-    public void addKeyword(Keyword keyword){
+    public void addKeyword(Keyword keyword) throws ErrorExceptionThrow{
         documentData.addKeyword(keyword);
     }
 
@@ -60,10 +59,9 @@ public class Controller {
     }
 
     public void startKeywordIDQuery(int id){
-        documentData.startKeywordReferenceQuery(id);
+        documentData.startKeywordConnectionQuery(id);
 
     }
-
 
     public void startKeywordDisplayQuery(int keywordID){
         documentData.startKeywordDisplayQuery(keywordID);
@@ -77,4 +75,40 @@ public class Controller {
         return documentData.getKeywordIDArray();
     }
 
+    public void getAddIdToReferenceTable(int docID){
+        documentData.addIdToReferenceTable(docID);
+    }
+
+    public void getAddFileToPathTable(String filePath, String fileName) throws ErrorExceptionThrow {
+        documentData.addFileToFilePathTable(filePath, fileName);
+    }
+
+    public RefFilePath selectFilePath(int docId){
+        return documentData.selectFilePathTable(docId);
+    }
+
+    public void getAddUrlToUrlTable(String urlInsert) throws ErrorExceptionThrow{
+        documentData.addUrlToUrlTable(urlInsert);
+    }
+
+
+    public RefURL selectedUrl(int docId){
+        return documentData.selectUrlTable(docId);
+    }
+
+    public void addToArchive(String shed, String rack, String folder){
+        documentData.addToArchive(shed, rack, folder);
+    }
+
+    public RefArchive selectArchive(int docId){
+        return documentData.selectArchive(docId);
+    }
+
+    public String selectReference(int refID){
+        return documentData.selectReference(refID);
+    }
+
+    public int selectReferenceID(int docID){
+        return documentData.selectReferenceID(docID);
+    }
 }
