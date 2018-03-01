@@ -118,16 +118,16 @@ public class View extends Application {
             openReferenceWindowBtn.setMaxSize(100,25);
             openReferenceWindowBtn.setMinSize(100, 25);
             openReferenceWindowBtn.setDisable(true);
-            TextArea refereceTextArea = new TextArea();
+            TextArea referenceTextArea = new TextArea();
             Label referenceDisplayLabel = new Label("Reference");
-            refereceTextArea.setEditable(false);
-            refereceTextArea.setWrapText(true);
+            referenceTextArea.setEditable(false);
+            referenceTextArea.setWrapText(true);
 
 
             GridPane.setConstraints(referenceDisplayLabel, 0, 4);
-            GridPane.setConstraints(refereceTextArea, 1, 4);
+            GridPane.setConstraints(referenceTextArea, 1, 4);
             GridPane.setConstraints(openReferenceWindowBtn, 2, 4);
-            gridPaneMainWindow.getChildren().addAll(referenceDisplayLabel, refereceTextArea, openReferenceWindowBtn);
+            gridPaneMainWindow.getChildren().addAll(referenceDisplayLabel, referenceTextArea, openReferenceWindowBtn);
 
 
             GridPane.setHgrow(idTextField, Priority.ALWAYS);
@@ -437,7 +437,7 @@ public class View extends Application {
                     }
                 });
 
-
+                //Opens the fileChooser and sets the referenceTextArea with the file Path if its Chosen
                 filePathOpenBtn.setOnAction(openEvent -> {
                     FileChooser fileChooser = new FileChooser();
                     fileChooser.setTitle("Select a file");
@@ -448,7 +448,7 @@ public class View extends Application {
                         String chosenFileName = chosenFile.getName();
                         try {
                             controller.getAddFileToPathTable(chosenFilePath, chosenFileName);
-                            refereceTextArea.setText(controller.selectReference(controller.selectReferenceID(docID)));
+                            referenceTextArea.setText(controller.selectReference(controller.selectReferenceID(docID)));
                             referenceStage.close();
                         } catch (ErrorExceptionThrow error) {
                             Alert errorDialog = new Alert(Alert.AlertType.WARNING);
@@ -462,13 +462,38 @@ public class View extends Application {
                     }
 
                 });
+                filePathTextfield.setOnMouseClicked(clickEvent ->{ FileChooser fileChooser = new FileChooser();
+                    fileChooser.setTitle("Select a file");
+                    File chosenFile = fileChooser.showOpenDialog(referenceStage);
+                    if (null != chosenFile) {
+                        System.out.println("");
+                        controller.getAddIdToReferenceTable(docID);
+                        String chosenFilePath = chosenFile.getPath();
+                        String chosenFileName = chosenFile.getName();
+                        try {
+                            controller.getAddFileToPathTable(chosenFilePath, chosenFileName);
+                            referenceTextArea.setText(controller.selectReference(controller.selectReferenceID(docID)));
+                            referenceStage.close();
+                        } catch (ErrorExceptionThrow error) {
+                            Alert errorDialog = new Alert(Alert.AlertType.WARNING);
+                            errorDialog.setTitle("File already Exists error");
+                            errorDialog.setHeaderText(null);
+                            errorDialog.setContentText("The selected Path already exists! " + "\n" + "Please select another File!");
+                            System.out.println("");
+                            errorDialog.showAndWait();
+                        }
+
+
+                    }
+
+                });
 
                 urlConfirmBtn.setOnAction(confirmEvent -> {
                     controller.getAddIdToReferenceTable(docID);
                     String urlText = urlTextfield.getText();
                     try {
                         controller.getAddUrlToUrlTable(urlText);
-                        refereceTextArea.setText(controller.selectReference(controller.selectReferenceID(docID)));
+                        referenceTextArea.setText(controller.selectReference(controller.selectReferenceID(docID)));
                         referenceStage.close();
                     } catch (ErrorExceptionThrow error) {
                         Alert errorAlert = new Alert(Alert.AlertType.WARNING);
@@ -487,7 +512,7 @@ public class View extends Application {
                     String rack =  rackTextField.getText() ;
                     String folder =  folderTextField.getText() ;
                     controller.addToArchive(shed, rack, folder);
-                    refereceTextArea.setText(controller.selectReference(controller.selectReferenceID(docID)));
+                    referenceTextArea.setText(controller.selectReference(controller.selectReferenceID(docID)));
                     referenceStage.close();
 
                 });
@@ -575,8 +600,8 @@ public class View extends Application {
              * in the case the the ReferenceTextArea has content in it, the openReferenceWindowBtn will be disabled
              * since one document can only have one reference, accessing the Reference Window is unnecessary
              */
-            refereceTextArea.textProperty().addListener(changeEvent -> {
-                if (!refereceTextArea.getText().isEmpty()) {
+            referenceTextArea.textProperty().addListener(changeEvent -> {
+                if (!referenceTextArea.getText().isEmpty()) {
                     openReferenceWindowBtn.setDisable(true);
                 } else {
                     openReferenceWindowBtn.setDisable(false);
@@ -601,9 +626,9 @@ public class View extends Application {
 
                     openKeywordsWindowBtn.setDisable(false);
                     openReferenceWindowBtn.setDisable(false);
-                    refereceTextArea.setText(controller.selectReference(controller.selectReferenceID(docID)));
+                    referenceTextArea.setText(controller.selectReference(controller.selectReferenceID(docID)));
                 } else {
-                    refereceTextArea.clear();
+                    referenceTextArea.clear();
                    // openKeywordsWindowBtn.setDisable(true);
                     openReferenceWindowBtn.setDisable(true);
 
